@@ -22,8 +22,8 @@ jobs:
       shell: bash
       run: |
         curl -kL "${{ matrix.llvm_url }}" -f --retry 5 -o llvm.exe
-        7z -oLLVM x llvm.exe
-        echo "::set-env PATH=$CD/LLVM;$PATH"
+        llvm.exe /S
+        clang --version
     - name: "OBS Dependencies"
       shell: bash
       run: |
