@@ -21,7 +21,8 @@ jobs:
     - name: "LLVM"
       run: |
         curl -kL "${{ matrix.llvm_url }}" -f --retry 5 -o llvm.exe
-        llvm.exe /S
+        dir
+        ./llvm.exe /S
         clang --version
     - name: "OBS Dependencies"
       shell: bash
