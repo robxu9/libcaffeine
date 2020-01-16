@@ -18,22 +18,25 @@ jobs:
     steps:
     - name: "Clone Repository"
       uses: actions/checkout@v1
-    - name: "LLVM "
+    - name: "LLVM"
       shell: bash
       run: |
         curl -kL "${{ matrix.llvm_url }}" -f --retry 5 -o llvm.exe
         7z -oLLVM x llvm.exe
-        echo "::set-env PATH=$CD;$PATH"
+        echo "::set-env PATH=$CD/LLVM;$PATH"
+    - name: "OBS Dependencies"
+      shell: bash
+      run: |
+        curl -kL "https://obsproject.com/downloads/dependencies2017.zip" -f --retry 5 -o obsdeps.zip
+        7z -oobsdeps x obsdeps.zip
     - name: "WebRTC Dependency"
       shell: bash
       run: |
         curl -kL "https://github.com/caffeinetv/webrtc/releases/download/v70.2-libcaffeine/webrtc-prebuilt-windows.7z" -f --retry 5 -o webrtc.7z
         7z -owebrtc x webrtc.7z
-      with:
-        path: ${}
     - name: "Configure"
       shell: bash
-      run: cmake -H. -Bbuild -G "Visual Studio 16 2019" -A${{ matrix.cmake_arch }} -T"LLVM" -DWEBRTC_ROOT_DIR=webrtc
+      run: cmake -H. -Bbuild -G "Visual Studio 16 2019" -A${{ matrix.cmake_arch }} -T"LLVM" -DWEBRTC_ROOT_DIR=webrtc -DDepsPath=obsdeps/win${{ matrix.arch }}
     - name: "Build"
       shell: bash
       run: cmake --build build --config RelWithDebInfo
