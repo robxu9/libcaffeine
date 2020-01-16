@@ -22,8 +22,7 @@ jobs:
         7z -owebrtc x webrtc.7z
     - name: "Configure"
       shell: bash
-      runs: |
-        cmake -H. -Bbuild -G "Visual Studio 16 2019" -A${{ matrix.cmake_arch }} -T"LLVM" -DWEBRTC_ROOT_DIR=webrtc
+      run: cmake -H. -Bbuild -G "Visual Studio 16 2019" -A${{ matrix.cmake_arch }} -T"LLVM" -DWEBRTC_ROOT_DIR=webrtc
     - name: "Build"
       shell: bash
-      runs: cmake --build build --config RelWithDebInfo
+      run: cmake --build build --config RelWithDebInfo
