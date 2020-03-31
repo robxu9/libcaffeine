@@ -31,6 +31,9 @@ find_package(WebRTC REQUIRED)
 # TODO: use a C++ http library
 find_package(Libcurl REQUIRED)
 
+# x264
+find_package(x264 REQUIRED)
+
 ################################################################################
 # Code
 ################################################################################
@@ -119,19 +122,12 @@ target_sources(${OBJLIB_NAME}
         ${libcaffeine_HEADER}
 )
 
-if(WIN32)
-    set(X264_LIB "${PROJECT_SOURCE_DIR}/third_party/x264/lib/win${BITS}/libx264.lib")
-elseif(APPLE)
-    set(X264_LIB "${PROJECT_SOURCE_DIR}/third_party/x264/lib/mac64/libx264.a")
-endif()
-
 set(PRIVATE_INCLUDES
     ${PROJECT_SOURCE_DIR}/include
     ${PROJECT_SOURCE_DIR}/src
 
     ${CMAKE_BINARY_DIR}/gen
 
-    ${PROJECT_SOURCE_DIR}/third_party/x264/include #TODO find externally
     ${PROJECT_SOURCE_DIR}/third_party/asio/include
     ${PROJECT_SOURCE_DIR}/third_party/nlohmann_json/single_include
     ${PROJECT_SOURCE_DIR}/third_party/stb
@@ -143,6 +139,7 @@ set(PRIVATE_INCLUDES
     ${WEBRTC_INCLUDE_DIR}/third_party/boringssl/src/include
 
     ${LIBCURL_INCLUDE_DIRS}
+    ${X264_INCLUDE_DIR}
 )
 
 set(PUBLIC_INCLUDES
@@ -162,9 +159,6 @@ function(set_output_name project_name)
         PROPERTIES
             PREFIX "" # Prevent naming the library `liblibcaffeine`
             OUTPUT_NAME ${project_name}
-            OUTPUT_NAME_DEBUG ${project_name}d
-            OUTPUT_NAME_MINSIZEREL ${project_name}s
-            OUTPUT_NAME_RELEASE ${project_name}r
     )
 endfunction(set_output_name)
 
@@ -174,7 +168,7 @@ add_library(${PROJECT_NAME} SHARED $<TARGET_OBJECTS:${OBJLIB_NAME}> src/Dummy.cp
 
 function(set_target_link_libraries project_name)
     target_link_libraries(${project_name} PRIVATE
-        ${X264_LIB}
+        ${X264_LIBRARY}
         ${LIBCURL_LIBRARIES}
         ${WEBRTC_LIBRARIES}
         ${WEBRTC_DEPENDENCIES}
@@ -188,6 +182,7 @@ set_output_name(${PROJECT_NAME})
 set_target_link_libraries(${PROJECT_NAME})
 
 set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER ${libcaffeine_HEADER})
+set_target_properties(${STATIC_NAME} PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
 
 ################################################################################
 # Tests
@@ -213,6 +208,16 @@ function(do_install)
         ARCHIVE DESTINATION "lib${BITS}" COMPONENT Caffeine
         PUBLIC_HEADER DESTINATION "include" COMPONENT Caffeine
     )
+
+    install(
+        TARGETS ${STATIC_NAME}
+        EXPORT ${STATIC_NAME}Target
+        RUNTIME DESTINATION "bin${BITS}" COMPONENT Caffeine
+        LIBRARY DESTINATION "lib${BITS}" COMPONENT Caffeine
+        ARCHIVE DESTINATION "lib${BITS}" COMPONENT Caffeine
+        PUBLIC_HEADER DESTINATION "include" COMPONENT Caffeine
+    )
+
     if(MSVC)
         # Debug Symbols (optional)
         install(
